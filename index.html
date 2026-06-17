@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Twitch Creator Dashboard - Mobile</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Inter, Roobert, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            background-color: #0e0e10;
+            color: #efeff1;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-size: 13px;
+        }
+
+        /* TOP NAVBAR */
+        .top-navbar {
+            height: 50px;
+            background-color: #18181b;
+            border-bottom: 1px solid #26262c;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 100;
+            position: relative;
+        }
+
+        .nav-left-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dropdown-trigger {
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .nav-stats-cluster {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 8px;
+            background: #0e0e10;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .stat-node {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-node .val {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .stat-node .lbl {
+            font-size: 10px;
+            color: #adadb8;
+        }
+
+        .nav-right-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+        }
+
+        /* MOBILE FIXED BOTTOM NAVIGATION TABS */
+        .mobile-tabs {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: #18181b;
+            border-top: 1px solid #26262c;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 110;
+            padding-bottom: env(safe-area-inset-bottom); /* iOS Notch Support */
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: #adadb8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 10px;
+            font-weight: 600;
+            gap: 4px;
+            cursor: pointer;
+            flex: 1;
+            padding: 8px 0;
+        }
+
+        .tab-btn.active {
+            color: #bf94ff;
+        }
+
+        .tab-btn .icon {
+            font-size: 18px;
+        }
+
+        /* MAIN DYNAMIC CONTENT CONTAINER */
+        .app-workspace {
+            position: absolute;
+            top: 50px;
+            bottom: calc(60px + env(safe-area-inset-bottom));
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* TAB PANELS */
+        .panel-column {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            background-color: #0e0e10;
+        }
+
+        .panel-column.active-panel {
+            display: flex;
+        }
+
+        .panel-header {
+            height: 40px;
+            border-bottom: 1px solid #1f1f23;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            font-weight: 600;
+            color: #efeff1;
+            background: #141416;
+        }
+
+        /* STREAM PREVIEW HUB */
+        .video-box-frame {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background-color: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .camera-container-block {
+            width: 100px;
+            height: 75px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            border: 1px dashed #9146ff;
+            border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+            z-index: 5;
+            background-color: #141414;
+        }
+
+        .live-preview-element {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .screen-share-backplane {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .online-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #eb0400;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            animation: pulse-badge 2s infinite;
+            z-index: 10;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .video-footer-meta {
+            padding: 10px 12px;
+            background-color: #18181b;
+            border-bottom: 1px solid #1f1f23;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* CONTEXT DIRECTOR SECTION */
+        .context-director-box {
+            background-color: #18181b;
+            border-bottom: 1px solid #1f1f23;
+            padding: 10px 12px;
+        }
+
+        .context-director-box p {
+            font-size: 10px;
+            color: #adadb8;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .context-btn-row {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .context-btn {
+            background-color: #2f2f35;
+            color: #efeff1;
+            border: 1px solid #464649;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .context-btn.active {
+            background-color: rgba(145, 70, 255, 0.2);
+            border-color: #9146ff;
+            color: #bf94ff;
+        }
+
+        /* ACTIONS GRID CONTAINER */
+        .quick-actions-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .action-icon-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .action-tile-btn {
+            aspect-ratio: 1.2;
+            border: none;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            gap: 4px;
+        }
+
+        .action-tile-btn span.label-text {
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .tile-purple { background-color: #9146ff; }
+        .tile-dark { background-color: #2f2f35; }
+        .tile-pink { background-color: #df127a; }
+        .tile-magenta { background-color: #c200ab; }
+        .tile-capture-active { background-color: #eb0400 !important; }
+
+        /* FEEDS & SCROLL CONTAINERS */
+        .activity-scrollway, .chat-feed-scrollway, .collab-pane-column {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .event-card {
+            background-color: #18181b;
+            border: 1px solid #26262c;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .event-card span { color: #9146ff; font-weight: bold; }
+        .event-card .time-stamp { color: #adadb8; font-size: 10px; margin-top: 2px; }
+
+        /* CHAT SYSTEM */
+        .chat-pane-column { position: relative; }
+        
+        .chat-message {
+            font-size: 12px;
+            padding: 4px 6px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 3px;
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+
+        .chat-message .username { font-weight: 700; margin-right: 6px; }
+
+        .chat-console-footer {
+            padding: 8px 12px;
+            background-color: #141416;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-wrapper {
+            background-color: #1f1f23;
+            border: 1px solid #3a3a3d;
+            border-radius: 4px;
+            display: flex;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 10px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .send-chat-btn {
+            background-color: #9146ff;
+            color: white;
+            border: none;
+            padding: 0 16px;
+            border-radius: 0 4px; 4px 0;
+            font-weight: bold;
+        }
+
+        /* POLL BANNER */
+        .active-poll-banner {
+            background-color: #18181b;
+            border: 1px solid #9146ff;
+            border-radius: 4px;
+            padding: 8px;
+            margin: 8px 0;
+            font-size: 11px;
+        }
+        .poll-option-row {
+            background: #2f2f35;
+            padding: 6px;
+            margin-top: 4px;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+        }
+        .poll-option-fill {
+            position: absolute;
+            top:0; left:0; bottom:0;
+            background: rgba(145, 70, 255, 0.25);
+            z-index: 1;
+        }
+        .poll-option-row span { z-index: 2; }
+
+        /* COLLAB MODULES */
+        .invite-guests-btn {
+            width: 100%; background: #2f2f35; color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; margin-bottom: 12px;
+        }
+        .favorites-module, .settings-dropdown-box {
+            background: #18181b; border: 1px solid #26262c; border-radius: 4px; padding: 12px; margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAV BAR -->
+    <div class="top-navbar">
+        <div class="nav-left-group">
+            <div class="dropdown-trigger">Manager ▼</div>
+            <div class="nav-stats-cluster">
+                <div class="stat-node">
+                    <span class="lbl">🕒</span><span class="val" id="sessionTimer">0:15:00</span>
+                </div>
+                <div class="stat-node">
+                    <span class="lbl">👥</span><span class="val" id="viewerCount">14.5K</span>
+                </div>
+            </div>
+        </div>
+        <div class="nav-right-actions">
+            <span>⚙️</span>
+            <div style="width: 22px; height: 22px; background-color: #53535f; border-radius: 50%;"></div>
+        </div>
+    </div>
+
+    <!-- MAIN APP STRUCTURE -->
+    <div class="app-workspace">
+        
+        <!-- PANEL 1: STREAM PREVIEW HUB -->
+        <div class="panel-column active-panel" id="panel-stream">
+            <div class="video-box-frame" id="videoBoxFrame">
+                <span class="online-tag" id="statusBadge">OFFLINE</span>
+                <video id="screenShareVideo" class="screen-share-backplane" autoplay playsinline muted></video>
+                <div id="cameraWrapper" class="camera-container-block">
+                    <video id="livePreviewVideo" class="live-preview-element" autoplay playsinline muted></video>
+                </div>
+            </div>
+
+            <div class="video-footer-meta">
+                <div style="font-size: 18px;">🎮</div>
+                <div style="font-weight: bold;" id="channelMetaName">low IQ core</div>
+                <span id="bitrateDisplay" style="margin-left:auto; color: #eb0400; font-size:11px; font-weight: bold;">0 Kbps</span>
+            </div>
+
+            <div class="context-director-box">
+                <p>Simulate Reactions</p>
+                <div class="context-btn-row">
+                    <button class="context-btn active" onclick="switchStreamContext('normal', this)">💬 Chatting</button>
+                    <button class="context-btn" onclick="switchStreamContext('casual', this)">🎮 Casual</button>
+                    <button class="context-btn" onclick="switchStreamContext('clutch', this)">🔥 Clutch</button>
+                    <button class="context-btn" onclick="switchStreamContext('fail', this)">💀 Fail</button>
+                </div>
+            </div>
+
+            <div class="quick-actions-box">
+                <div class="action-icon-grid">
+                    <button class="action-tile-btn tile-purple" onclick="createNewPollPrompt()">
+                        <span>📊</span><span class="label-text">Poll</span>
+                    </button>
+                    <button class="action-tile-btn tile-dark" id="startCaptureBtn" onclick="toggleCameraCapture()">
+                        <span id="captureIcon">📷</span><span class="label-text" id="captureLabel">Camera</span>
+                    </button>
+                    <button class="action-tile-btn tile-dark" id="startScreenBtn" onclick="toggleScreenCapture()">
+                        <span id="screenIcon">🖥️</span><span class="label-text" id="screenLabel">Screen</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANEL 2: ACTIVITY FEED -->
+        <div class="panel-column" id="panel-feed">
+            <div class="panel-header"><span>Activity Feed</span></div>
+            <div class="activity-scrollway" id="activityFeedBox"></div>
+        </div>
+
+        <!-- PANEL 3: CHAT VIEW -->
+        <div class="panel-column" id="panel-chat">
+            <div class="panel-header"><span>Live Chat</span></div>
+            <div id="pollAreaContainer" style="padding: 0 10px;"></div>
+            <div class="chat-feed-scrollway" id="chatFeedBox"></div>
+            
+            <div class="chat-console-footer">
+                <div class="input-wrapper">
+                    <input type="text" id="chatInputField" class="chat-input" placeholder="Send a message" onkeydown="handleChatInput(event)">
+                    <button class="send-chat-btn" onclick="submitCustomChat()">Chat</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANEL 4: COLLABORATION -->
+        <div class="panel-column" id="panel-collab">
+            <div class="panel-header"><span>Collaboration</span></div>
+            <div class="collab-pane-column">
+                <button class="invite-guests-btn">👥 Invite Guests</button>
+                <div class="favorites-module">
+                    <div style="font-weight:bold; margin-bottom:4px;">Favorites</div>
+                    <div style="color: #adadb8; font-size: 11px;">No current mobile collaborators active.</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTTOM MOBILE TABS -->
+    <div class="mobile-tabs">
+        <button class="tab-btn active" onclick="switchMobileTab('stream', this)">
+            <span class="icon">📺</span><span>Stream</span>
+        </button>
+        <button class="tab-btn" onclick="switchMobileTab('feed', this)">
+            <span class="icon">🔔</span><span>Feed</span>
+        </button>
+        <button class="tab-btn" onclick="switchMobileTab('chat', this)">
+            <span class="icon">💬</span><span>Chat</span>
+        </button>
+        <button class="tab-btn" onclick="switchMobileTab('collab', this)">
+            <span class="icon">👥</span><span>Collab</span>
+        </button>
+    </div>
+
+    <script>
+        // Tab switching mechanics
+        function switchMobileTab(panelId, element) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.panel-column').forEach(panel => panel.classList.remove('active-panel'));
+            
+            element.classList.add('active');
+            document.getElementById(`panel-${panelId}`).classList.add('active-panel');
+
+            if(panelId === 'chat') {
+                const box = document.getElementById('chatFeedBox');
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        // Restoring engine mechanics 
+        const chatFeedBox = document.getElementById('chatFeedBox');
+        const activityFeedBox = document.getElementById('activityFeedBox');
+        const chatInputField = document.getElementById('chatInputField');
+        const pollAreaContainer = document.getElementById('pollAreaContainer');
+        const sessionTimer = document.getElementById('sessionTimer');
+        const viewerCount = document.getElementById('viewerCount');
+        const bitrateDisplay = document.getElementById('bitrateDisplay');
+        const cameraWrapper = document.getElementById('cameraWrapper');
+        const livePreviewVideo = document.getElementById('livePreviewVideo');
+        const screenShareVideo = document.getElementById('screenShareVideo');
+        const startCaptureBtn = document.getElementById('startCaptureBtn');
+        const captureIcon = document.getElementById('captureIcon');
+        const captureLabel = document.getElementById('captureLabel');
+        const startScreenBtn = document.getElementById('startScreenBtn');
+        const screenIcon = document.getElementById('screenIcon');
+        const screenLabel = document.getElementById('screenLabel');
+        const statusBadge = document.getElementById('statusBadge');
+
+        let chatCount = 0, sessionSeconds = 900, currentViewers = 14576, currentContext = "normal", chatSpeed = 400, chatIntervalId = null, activePoll = null;
+        let cameraStream = null, screenStream = null;
+
+        const userColors = ["#1e90ff", "#00ff7f", "#ff1493", "#ba55d3", "#00ffff", "#ff7f50"];
+        const namePrefix = ["spoon", "code", "pixel", "void", "salty", "giga", "alpha", "neon", "blitz"];
+        const nameSuffix = ["99", "406", "X", "7", "🔥", "GG", "lol"];
+        const normalPhrases = ["Yo what's up!", "Quality looking crisp.", "Let's gooooo", "W stream today", "bruh look at that", "Wait, what's happening?"];
+        const casualPhrases = ["This gameplay is relaxing", "Honestly just chilling", "Cozy stream vibe", "Perfect background noise", "Looks clean!"];
+        const clutchPhrases = ["OH MY GOD??", "NO SHOT HE SURVIVED", "POGGGGG", "Actual god mechanics", "HE IS INSANE!"];
+        const failPhrases = ["BRUH LMAOOOOO 💀", "Choked under pressure", "F in the chat", "Uninstall immediately", "Unlucky timing"];
+
+        function getPhrases() {
+            if(currentContext === 'clutch') return clutchPhrases;
+            if(currentContext === 'fail') return failPhrases;
+            if(currentContext === 'casual') return casualPhrases;
+            return normalPhrases;
+        }
+
+        function switchStreamContext(contextKey, element) {
+            currentContext = contextKey;
+            document.querySelectorAll('.context-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            chatSpeed = contextKey === 'clutch' ? 180 : (contextKey === 'fail' ? 220 : 400);
+            clearInterval(chatIntervalId);
+            chatIntervalId = setInterval(createMessage, chatSpeed);
+        }
+
+        function checkGlobalStreamStatus() {
+            if (cameraStream || screenStream) {
+                statusBadge.innerText = "LIVE"; statusBadge.style.backgroundColor = "#eb0400";
+                bitrateDisplay.innerText = "4,500 Kbps";
+            } else {
+                statusBadge.innerText = "OFFLINE"; statusBadge.style.backgroundColor = "#53535f";
+                bitrateDisplay.innerText = "0 Kbps";
+            }
+        }
+
+        async function toggleCameraCapture() {
+            if (cameraStream) { stopCamera(); return; }
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+                livePreviewVideo.srcObject = cameraStream;
+                cameraWrapper.style.display = 'block';
+                captureIcon.innerText = "❌"; captureLabel.innerText = "Stop Cam";
+                startCaptureBtn.classList.add('tile-capture-active');
+                checkGlobalStreamStatus();
+            } catch { alert("Camera access denied."); }
+        }
+
+        function stopCamera() {
+            if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+            cameraStream = null; livePreviewVideo.srcObject = null; cameraWrapper.style.display = 'none';
+            captureIcon.innerText = "📷"; captureLabel.innerText = "Camera";
+            startCaptureBtn.classList.remove('tile-capture-active');
+            checkGlobalStreamStatus();
+        }
+
+        async function toggleScreenCapture() {
+            if (screenStream) { stopScreen(); return; }
+            try {
+                screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                screenShareVideo.srcObject = screenStream; screenShareVideo.style.display = 'block';
+                screenIcon.innerText = "❌"; screenLabel.innerText = "Stop Screen";
+                startScreenBtn.classList.add('tile-capture-active');
+                checkGlobalStreamStatus();
+            } catch { console.log("Screen sharing cancelled or unsupported on device browser configuration."); }
+        }
+
+        function stopScreen() {
+            if (screenStream) screenStream.getTracks().forEach(t => t.stop());
+            screenStream = null; screenShareVideo.srcObject = null; screenShareVideo.style.display = 'none';
+            screenIcon.innerText = "🖥️"; screenLabel.innerText = "Screen";
+            startScreenBtn.classList.remove('tile-capture-active');
+            checkGlobalStreamStatus();
+        }
+
+        function createNewPollPrompt() {
+            const question = prompt("Poll Question:", "Good run?"); if (!question) return;
+            activePoll = { question, options: ["Yes", "No"], votes: [0, 0], totalVotes: 0 };
+            renderLivePoll();
+        }
+
+        function renderLivePoll() {
+            if (!activePoll) { pollAreaContainer.innerHTML = ''; return; }
+            const p1 = activePoll.totalVotes === 0 ? 0 : Math.round((activePoll.votes[0] / activePoll.totalVotes) * 100);
+            const p2 = activePoll.totalVotes === 0 ? 0 : Math.round((activePoll.votes[1] / activePoll.totalVotes) * 100);
+            pollAreaContainer.innerHTML = `
+                <div class="active-poll-banner">
+                    <strong>📊 ${activePoll.question}</strong>
+                    <div class="poll-option-row" onclick="voteOnPoll(0)"><div class="poll-option-fill" style="width:${p1}%"></div><span>1. Yes</span><span>${p1}%</span></div>
+                    <div class="poll-option-row" onclick="voteOnPoll(1)"><div class="poll-option-fill" style="width:${p2}%"></div><span>2. No</span><span>${p2}%</span></div>
+                </div>`;
+        }
+
+        function voteOnPoll(index) { activePoll.votes[index]++; activePoll.totalVotes++; renderLivePoll(); }
+
+        function createMessage() {
+            const user = namePrefix[Math.floor(Math.random()*namePrefix.length)] + nameSuffix[Math.floor(Math.random()*nameSuffix.length)];
+            const text = activePoll && Math.random() < 0.25 ? (Math.random() < 0.5 ? "1" : "2") : getPhrases()[Math.floor(Math.random()*getPhrases().length)];
+            
+            if(activePoll && (text === "1" || text === "2")) { voteOnPoll(text === "1" ? 0 : 1); }
+
+            const color = userColors[Math.floor(Math.random()*userColors.length)];
+            const msg = document.createElement('div');
+            msg.className = 'chat-message';
+            msg.innerHTML = `<span class="username" style="color: ${color}">${user}:</span><span>${text}</span>`;
+            
+            chatFeedBox.appendChild(msg);
+            chatCount++;
+            if (chatCount > 40) chatFeedBox.removeChild(chatFeedBox.firstChild);
+            if (document.getElementById('panel-chat').classList.contains('active-panel')) {
+                chatFeedBox.scrollTop = chatFeedBox.scrollHeight;
+            }
+        }
+
+        function handleChatInput(e) { if (e.key === 'Enter') submitCustomChat(); }
+        function submitCustomChat() {
+            if (chatInputField.value.trim() === '') return;
+            const msg = document.createElement('div');
+            msg.className = 'chat-message';
+            msg.innerHTML = `<span class="username" style="color: #bf94ff">You:</span><span>${chatInputField.value}</span>`;
+            chatFeedBox.appendChild(msg);
+            chatInputField.value = '';
+            chatFeedBox.scrollTop = chatFeedBox.scrollHeight;
+        }
+
+        function addActivityEvent() {
+            const user = namePrefix[Math.floor(Math.random()*namePrefix.length)] + "👑";
+            const card = document.createElement('div');
+            card.className = 'event-card';
+            card.innerHTML = `👤 <span>${user}</span> followed you<div class="time-stamp">Just now</div>`;
+            activityFeedBox.insertBefore(card, activityFeedBox.firstChild);
+            setTimeout(addActivityEvent, 7000);
+        }
+
+        setInterval(() => {
+            if (cameraStream || screenStream) sessionSeconds++;
+            const mins = String(Math.floor((sessionSeconds % 3600) / 60)).padStart(2, '0');
+            const secs = String(sessionSeconds % 60).padStart(2, '0');
+            sessionTimer.innerText = `0:${mins}:${secs}`;
+        }, 1000);
+
+        chatIntervalId = setInterval(createMessage, chatSpeed);
+        setTimeout(addActivityEvent, 2000);
+    </script>
+</body>
+</html>
